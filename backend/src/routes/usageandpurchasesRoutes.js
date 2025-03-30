@@ -12,7 +12,7 @@ router.post("/createPurchase", createPurchase); // Create a new purchase
 router.get("/getPurchaseLogs", getPurchases); // Get all purchases
 
 // Usage Log Routes
-router.post("/createUsage", createUsage); // Create a new usage log
+router.post("/createUsages", createUsage); // Create a new usage log
 router.get("/getUsageLogs", getUsageLogs); // Get all usage logs
 
 export default router;

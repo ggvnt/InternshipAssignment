@@ -30,16 +30,19 @@ export const useUsageLogStore = create((set) => ({
   createUsageLog: async (newLog) => {
     set({ loading: true, error: null });
     try {
-      const response = await axiosInstance.post("/usage/createUsage", {
+      console.log("Sending data:", newLog); // Log the data being sent
+      const response = await axiosInstance.post("/usage/createUsages", {
         ...newLog,
         quantityUsed: Number(newLog.quantityUsed), // Ensure it's a number
       });
 
+      console.log("Response received:", response.data); // Log response data
       set((state) => ({
         usageLogs: [...state.usageLogs, response.data],
         loading: false,
       }));
     } catch (error) {
+      console.error("Error creating usage log:", error); // Log the error
       set({
         error: error.response
           ? error.response.data.message
