@@ -1,38 +1,51 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUsageLogStore } from "../store/useUsageLogStore";
+import { useUsageLogStore } from "../store/useUsageLogStore.js";
 
 const UsageLogPage = () => {
   const [date, setDate] = useState("");
-  const [itemName, setItemName] = useState("");
-  const [category, setCategory] = useState("");
+  const [inventoryId, setInventoryId] = useState("");
   const [quantityUsed, setQuantityUsed] = useState("");
-  const [successMessage, setSuccessMessage] = useState(""); // Added success message state
-  const { logUsage } = useUsageLogStore();
-  const navigate = useNavigate(); // Hook for navigation
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const { createUsageLog } = useUsageLogStore();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!date || !itemName || !category || !quantityUsed) {
-      alert("Please fill out all fields.");
+
+    // Basic form validation
+    if (!date || !inventoryId || !quantityUsed) {
+      setErrorMessage("Please fill out all fields.");
       return;
     }
 
+    if (Number(quantityUsed) <= 0) {
+      setErrorMessage("Quantity used must be greater than 0.");
+      return;
+    }
+
+    // Clear error message if validation passes
+    setErrorMessage("");
+
     const newUsage = {
+      inventoryId,
       date,
-      itemName,
-      category,
       quantityUsed: Number(quantityUsed),
     };
 
     try {
-      await logUsage(newUsage); // Call the logUsage function to add the log
-      setSuccessMessage("Usage log added successfully!"); // Success message
+      await createUsageLog(newUsage);
+      setSuccessMessage("Usage log added successfully!");
       setTimeout(() => {
         navigate("/usageLog"); // Navigate back to the usage log page after 1.5 seconds
       }, 1500);
     } catch (error) {
-      alert("Error adding usage log");
+      // Improved error handling
+      setErrorMessage(
+        "Error adding usage log: " +
+          (error?.response?.data?.message || error.message || "Unknown error")
+      );
     }
   };
 
@@ -42,10 +55,16 @@ const UsageLogPage = () => {
         Add Usage Log
       </h2>
 
+      {/* Display Success Message */}
       {successMessage && (
         <div className="mb-4 text-green-500 font-semibold">
           {successMessage}
         </div>
+      )}
+
+      {/* Display Error Message */}
+      {errorMessage && (
+        <div className="mb-4 text-red-500 font-semibold">{errorMessage}</div>
       )}
 
       <form onSubmit={handleSubmit}>
@@ -60,24 +79,13 @@ const UsageLogPage = () => {
         </div>
 
         <div className="mb-4">
-          <label className="block text-gray-700">Item Name</label>
+          <label className="block text-gray-700">Inventory ID</label>
           <input
             type="text"
-            value={itemName}
-            onChange={(e) => setItemName(e.target.value)}
+            value={inventoryId}
+            onChange={(e) => setInventoryId(e.target.value)} // Added InventoryId field
             className="w-full p-2 border rounded-md"
-            placeholder="Enter item name"
-          />
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-gray-700">Category</label>
-          <input
-            type="text"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full p-2 border rounded-md"
-            placeholder="Enter item category"
+            placeholder="Enter inventory ID"
           />
         </div>
 
@@ -89,6 +97,7 @@ const UsageLogPage = () => {
             onChange={(e) => setQuantityUsed(e.target.value)}
             className="w-full p-2 border rounded-md"
             placeholder="Enter quantity used"
+            min="1"
           />
         </div>
 

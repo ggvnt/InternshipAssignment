@@ -7,25 +7,34 @@ const PurchaseLogPage = () => {
   const [itemName, setItemName] = useState("");
   const [category, setCategory] = useState("");
   const [quantity, setQuantity] = useState("");
-  const { addPurchaseLog } = usePurchaseLogStore();
+  const { addPurchaseLog } = usePurchaseLogStore(); // Ensure the store is used correctly
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Basic form validation
     if (!date || !itemName || !category || !quantity) {
       alert("Please fill out all fields.");
       return;
     }
 
+    // Create the new purchase log object
     const newPurchase = {
       date,
       itemName,
       category,
-      quantity: Number(quantity),
+      quantity: Number(quantity), // Ensure quantity is a number
     };
 
-    await addPurchaseLog(newPurchase);
-    navigate("/purchaseLog");
+    try {
+      // Attempt to add the purchase log
+      await addPurchaseLog(newPurchase); // Call the method from Zustand store
+      navigate("/purchaseLog"); // Navigate to the purchase log page
+    } catch (error) {
+      console.error("Error adding purchase log:", error);
+      alert("Error adding purchase log: " + error.message);
+    }
   };
 
   return (
@@ -34,6 +43,7 @@ const PurchaseLogPage = () => {
         Add Purchase Log
       </h2>
       <form onSubmit={handleSubmit}>
+        {/* Date input */}
         <div className="mb-4">
           <label className="block text-gray-700">Date</label>
           <input
@@ -44,6 +54,7 @@ const PurchaseLogPage = () => {
           />
         </div>
 
+        {/* Item Name input */}
         <div className="mb-4">
           <label className="block text-gray-700">Item Name</label>
           <input
@@ -55,6 +66,7 @@ const PurchaseLogPage = () => {
           />
         </div>
 
+        {/* Category input */}
         <div className="mb-4">
           <label className="block text-gray-700">Category</label>
           <input
@@ -66,6 +78,7 @@ const PurchaseLogPage = () => {
           />
         </div>
 
+        {/* Quantity input */}
         <div className="mb-4">
           <label className="block text-gray-700">Quantity</label>
           <input
@@ -74,9 +87,11 @@ const PurchaseLogPage = () => {
             onChange={(e) => setQuantity(e.target.value)}
             className="w-full p-2 border rounded-md"
             placeholder="Enter quantity"
+            min="1"
           />
         </div>
 
+        {/* Submit button */}
         <div className="flex justify-end">
           <button
             type="submit"
