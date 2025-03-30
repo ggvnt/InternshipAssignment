@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import { connectDB } from "./lib/db.js";
 import inventoryRoutes from "./routes/inventory.route.js";
+import usageandpurchasesRoutes from "./routes/usageandpurchasesRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -17,6 +18,7 @@ app.use(
 app.use(express.json());
 
 app.use("/api/inventory", inventoryRoutes);
+app.use("/api/usage", usageandpurchasesRoutes);
 
 app.listen(PORT, async () => {
   await connectDB();

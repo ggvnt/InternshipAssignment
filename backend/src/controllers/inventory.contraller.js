@@ -42,25 +42,29 @@ export const getInventory = async (req, res) => {
 
 export const updateInventory = async (req, res) => {
   const { id } = req.params;
-  const { purchased, used } = req.body;
+  const { purchased, used, initialStock } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(404).send("No inventory with that id");
   }
 
   try {
-    const inventory = await Inventory.findById(id);
-    if (!inventory) {
+    const updatedInventory = await Inventory.findByIdAndUpdate(
+      id,
+      {
+        purchased,
+        used,
+        initialStock,
+        currentStock: initialStock + purchased - used,
+      },
+      { new: true }
+    );
+
+    if (!updatedInventory) {
       return res.status(404).json({ message: "Inventory not found" });
     }
 
-    inventory.purchased += purchased;
-    inventory.used += used;
-    inventory.currentStock =
-      inventory.initialStock + inventory.purchased - inventory.used;
-
-    await inventory.save();
-    res.status(200).json(inventory);
+    res.status(200).json(updatedInventory);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -93,6 +97,31 @@ export const getInventoryById = async (req, res) => {
       return res.status(404).json({ message: "Inventory not found" });
     }
     res.status(200).json(inventory);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getStockSummary = async (req, res) => {
+  try {
+    const inventory = await Inventory.find();
+
+    let totalItems = 0;
+    let lowStockItems = [];
+
+    inventory.forEach((item) => {
+      totalItems += item.currentStock;
+      if (item.currentStock < 5) {
+        // Example low stock threshold
+        lowStockItems.push(item);
+      }
+    });
+
+    if (lowStockItems.length > 0) {
+      sendStockAlert(lowStockItems); // Send low stock alerts if needed
+    }
+
+    res.status(200).json({ totalItems, lowStockItems });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

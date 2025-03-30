@@ -17,7 +17,6 @@ export const useInventoryStore = create((set) => ({
   },
 
   addItem: async (newItem) => {
-    // Changed the name here to 'addItem'
     set({ loading: true, error: null });
     try {
       const response = await axiosInstance.post(

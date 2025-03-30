@@ -4,6 +4,7 @@ import {
   deleteInventory,
   getInventory,
   getInventoryById,
+  getStockSummary,
   updateInventory,
 } from "../controllers/inventory.contraller.js";
 
@@ -14,5 +15,7 @@ router.get("/getInventory", getInventory);
 router.get("/getInventory/:id", getInventoryById); // Fixed route to call getInventoryById
 router.put("/updateInventory/:id", updateInventory);
 router.delete("/deleteInventory/:id", deleteInventory);
+
+router.get("/stockSummary", getStockSummary);
 
 export default router;
