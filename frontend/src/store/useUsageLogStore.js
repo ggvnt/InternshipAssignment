@@ -1,4 +1,3 @@
-// src/store/usageLogStore.js
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios.js";
 
@@ -11,6 +10,11 @@ export const useUsageLogStore = create((set) => ({
     set({ loading: true, error: null });
     try {
       const response = await axiosInstance.get("/usage/getUsageLogs");
+
+      if (!Array.isArray(response.data)) {
+        throw new Error("Invalid response format");
+      }
+
       set({ usageLogs: response.data, loading: false });
     } catch (error) {
       set({
@@ -18,6 +22,7 @@ export const useUsageLogStore = create((set) => ({
           ? error.response.data.message
           : "Error fetching usage logs",
         loading: false,
+        usageLogs: [], // Ensure state is always an array
       });
     }
   },
@@ -25,7 +30,11 @@ export const useUsageLogStore = create((set) => ({
   createUsageLog: async (newLog) => {
     set({ loading: true, error: null });
     try {
-      const response = await axiosInstance.post("/usage/createUsage", newLog);
+      const response = await axiosInstance.post("/usage/createUsage", {
+        ...newLog,
+        quantityUsed: Number(newLog.quantityUsed), // Ensure it's a number
+      });
+
       set((state) => ({
         usageLogs: [...state.usageLogs, response.data],
         loading: false,
@@ -36,59 +45,6 @@ export const useUsageLogStore = create((set) => ({
           ? error.response.data.message
           : "Error creating usage log",
         loading: false,
-      });
-    }
-  },
-
-  logUsage: async (newLog) => {
-    set({ loading: true, error: null });
-    try {
-      const response = await axiosInstance.post("/usage/createUsage", newLog);
-      set((state) => ({
-        usageLogs: [...state.usageLogs, response.data],
-        loading: false,
-      }));
-    } catch (error) {
-      set({
-        error: error.response
-          ? error.response.data.message
-          : "Error logging usage",
-        loading: false,
-      });
-    }
-  },
-
-  updateUsageLog: async (id, updatedLog) => {
-    try {
-      const response = await axiosInstance.put(
-        `/usage/updateUsageLog/${id}`,
-        updatedLog
-      );
-      set((state) => ({
-        usageLogs: state.usageLogs.map((log) =>
-          log._id === id ? response.data : log
-        ),
-      }));
-    } catch (error) {
-      set({
-        error: error.response
-          ? error.response.data.message
-          : "Error updating usage log",
-      });
-    }
-  },
-
-  deleteUsageLog: async (id) => {
-    try {
-      await axiosInstance.delete(`/usage/deleteUsageLog/${id}`);
-      set((state) => ({
-        usageLogs: state.usageLogs.filter((log) => log._id !== id),
-      }));
-    } catch (error) {
-      set({
-        error: error.response
-          ? error.response.data.message
-          : "Error deleting usage log",
       });
     }
   },
