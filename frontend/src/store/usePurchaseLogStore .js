@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios.js";
-import { createPurchase } from "../../../backend/src/controllers/purchaseControllers.js";
 
 export const usePurchaseLogStore = create((set) => ({
   purchaseLogs: [],
@@ -10,13 +9,14 @@ export const usePurchaseLogStore = create((set) => ({
   fetchPurchaseLogs: async () => {
     set({ loading: true, error: null });
     try {
-      const response = await axiosInstance.get("/usage/getPurchaseLogs"); // Fixed API endpoint
+      console.log("Fetching purchase logs...");
+      const response = await axiosInstance.get("/usage/getPurchaseLogs");
+      console.log("Response:", response.data);
       set({ purchaseLogs: response.data, loading: false });
     } catch (error) {
+      console.error("Fetch Error:", error.response?.data || error.message);
       set({
-        error: error.response
-          ? error.response.data.message
-          : "Error fetching purchase logs",
+        error: error.response?.data?.message || "Error fetching purchase logs",
         loading: false,
       });
     }
@@ -25,73 +25,18 @@ export const usePurchaseLogStore = create((set) => ({
   addPurchaseLog: async (newLog) => {
     set({ loading: true, error: null });
     try {
-      const response = await axiosInstance.post("/usage/createP", newLog);
-      set((state) => ({
-        purchaseLogs: [...state.purchaseLogs, response.data],
-        loading: false,
-      }));
-    } catch (error) {
-      set({
-        error: error.response
-          ? error.response.data.message
-          : "Error adding purchase log",
-        loading: false,
-      });
-    }
-  },
-
-  createPurchaseLog: async (newLog) => {
-    set({ loading: true, error: null });
-    try {
       const response = await axiosInstance.post(
         "/usage/createPurchase",
         newLog
-      );
+      ); //
       set((state) => ({
         purchaseLogs: [...state.purchaseLogs, response.data],
         loading: false,
       }));
     } catch (error) {
       set({
-        error: error.response
-          ? error.response.data.message
-          : "Error creating purchase log",
+        error: error.response?.data?.message || "Error adding purchase log",
         loading: false,
-      });
-    }
-  },
-
-  updatePurchaseLog: async (id, updatedLog) => {
-    try {
-      const response = await axiosInstance.put(
-        `/purchase/updatePurchaseLog/${id}`,
-        updatedLog
-      );
-      set((state) => ({
-        purchaseLogs: state.purchaseLogs.map((log) =>
-          log._id === id ? response.data : log
-        ),
-      }));
-    } catch (error) {
-      set({
-        error: error.response
-          ? error.response.data.message
-          : "Error updating purchase log",
-      });
-    }
-  },
-
-  deletePurchaseLog: async (id) => {
-    try {
-      await axiosInstance.delete(`/purchase/deletePurchaseLog/${id}`);
-      set((state) => ({
-        purchaseLogs: state.purchaseLogs.filter((log) => log._id !== id),
-      }));
-    } catch (error) {
-      set({
-        error: error.response
-          ? error.response.data.message
-          : "Error deleting purchase log",
       });
     }
   },

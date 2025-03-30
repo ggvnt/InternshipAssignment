@@ -42,8 +42,14 @@ export const createPurchase = async (req, res) => {
 export const getPurchases = async (req, res) => {
   try {
     const purchases = await Purchase.find().populate("inventoryId");
+
+    if (purchases.length === 0) {
+      return res.status(200).json([]);
+    }
+
     res.status(200).json(purchases);
   } catch (error) {
+    console.error("Error fetching purchases:", error);
     res.status(500).json({ message: error.message });
   }
 };
