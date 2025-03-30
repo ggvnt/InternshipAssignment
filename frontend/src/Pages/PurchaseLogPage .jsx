@@ -1,39 +1,52 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { usePurchaseLogStore } from "../store/usePurchaseLogStore .js";
+import { usePurchaseLogStore } from "../store/usePurchaseLogStore .js"; // Corrected import path
 
 const PurchaseLogPage = () => {
   const [date, setDate] = useState("");
-  const [itemName, setItemName] = useState("");
-  const [category, setCategory] = useState("");
+  const [inventoryId, setInventoryId] = useState("");
   const [quantity, setQuantity] = useState("");
-  const { addPurchaseLog } = usePurchaseLogStore(); // Ensure the store is used correctly
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const { addPurchaseLog } = usePurchaseLogStore();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Basic form validation
-    if (!date || !itemName || !category || !quantity) {
-      alert("Please fill out all fields.");
+    if (!date || !inventoryId || !quantity) {
+      setErrorMessage("Please fill out all fields.");
       return;
     }
 
-    // Create the new purchase log object
+    if (Number(quantity) <= 0) {
+      setErrorMessage("Quantity must be greater than 0.");
+      return;
+    }
+
+    setErrorMessage("");
+
+    // Create the new purchase object
     const newPurchase = {
+      inventoryId,
       date,
-      itemName,
-      category,
-      quantity: Number(quantity), // Ensure quantity is a number
+      quantity: Number(quantity),
     };
 
     try {
       // Attempt to add the purchase log
-      await addPurchaseLog(newPurchase); // Call the method from Zustand store
-      navigate("/purchaseLog"); // Navigate to the purchase log page
+      await addPurchaseLog(newPurchase);
+      setSuccessMessage("Purchase log added successfully!");
+      setTimeout(() => {
+        navigate("/purchaseLog"); // Navigate to the purchase log page after 1.5 seconds
+      }, 1500);
     } catch (error) {
-      console.error("Error adding purchase log:", error);
-      alert("Error adding purchase log: " + error.message);
+      // Improved error handling
+      setErrorMessage(
+        "Error adding purchase log: " +
+          (error?.response?.data?.message || error.message || "Unknown error")
+      );
     }
   };
 
@@ -42,6 +55,19 @@ const PurchaseLogPage = () => {
       <h2 className="text-3xl font-semibold text-center text-gray-800 mb-6">
         Add Purchase Log
       </h2>
+
+      {/* Display Success Message */}
+      {successMessage && (
+        <div className="mb-4 text-green-500 font-semibold">
+          {successMessage}
+        </div>
+      )}
+
+      {/* Display Error Message */}
+      {errorMessage && (
+        <div className="mb-4 text-red-500 font-semibold">{errorMessage}</div>
+      )}
+
       <form onSubmit={handleSubmit}>
         {/* Date input */}
         <div className="mb-4">
@@ -54,27 +80,15 @@ const PurchaseLogPage = () => {
           />
         </div>
 
-        {/* Item Name input */}
+        {/* Inventory ID input */}
         <div className="mb-4">
-          <label className="block text-gray-700">Item Name</label>
+          <label className="block text-gray-700">Inventory ID</label>
           <input
             type="text"
-            value={itemName}
-            onChange={(e) => setItemName(e.target.value)}
+            value={inventoryId}
+            onChange={(e) => setInventoryId(e.target.value)} // Using inventoryId
             className="w-full p-2 border rounded-md"
-            placeholder="Enter item name"
-          />
-        </div>
-
-        {/* Category input */}
-        <div className="mb-4">
-          <label className="block text-gray-700">Category</label>
-          <input
-            type="text"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full p-2 border rounded-md"
-            placeholder="Enter item category"
+            placeholder="Enter inventory ID"
           />
         </div>
 
@@ -84,7 +98,7 @@ const PurchaseLogPage = () => {
           <input
             type="number"
             value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
+            onChange={(e) => setQuantity(e.target.value)} // Using quantity
             className="w-full p-2 border rounded-md"
             placeholder="Enter quantity"
             min="1"
