@@ -54,7 +54,7 @@ const UpdateInventoryPage = () => {
       currentStock: Number(formData.currentStock),
     });
 
-    navigate("/"); // Redirect to inventory list after update
+    navigate("/inventory"); // Redirect to inventory list after update
   };
 
   return (

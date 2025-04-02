@@ -23,7 +23,7 @@ const AddInventoryPage = () => {
     };
 
     await addItem(newItem);
-    navigate("/");
+    navigate("/inventory");
   };
 
   return (
